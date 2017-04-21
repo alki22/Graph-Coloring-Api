@@ -1,0 +1,5 @@
+1)array fijo sin qsort = 0.015s
+2)array fijo con qsort = 0.068s
+
+3)array mutable sin qsort = 0.026s (~2n)
+4)array mutable con qsort = 0.090s (~1.5n con respecto a 2) )
