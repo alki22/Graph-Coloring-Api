@@ -15,7 +15,6 @@ struct grafo_t {
 
 typedef struct grafo_t *Grafo;
 
-
 Grafo crearGrafo(u32 cantVertices) {
 	//Valores iniciales para la estructura de grafo
 	//Asignar memoria inicial para la estructura
@@ -23,10 +22,9 @@ Grafo crearGrafo(u32 cantVertices) {
 	grafo->cantVertices = cantVertices;
 	//Asignar memoria para un numero n (= cantVertices) de vertices
 	grafo->hashTable = calloc(cantVertices, sizeof(Vertice));
-	//Devuelve un puntero al grafo generado
+	//Devolver un puntero al grafo generado
 	return grafo;
 }
-
 
 int insertarEnHash(Grafo grafo, u32 nombre) {
 	/*
@@ -34,20 +32,22 @@ int insertarEnHash(Grafo grafo, u32 nombre) {
 	y la cantidad de vertices del grafo
 	*/
 	int posicion = nombre % grafo->cantVertices;
-	bool insertado = false;
-	Vertice iesimoVertice = NULL;
+	int busquedas = 0;
+	Vertice iesimoVertice;
 	
 	//Recorre linealmente la tabla desde la posición i dada
-	while(!insertado){
+	while(busquedas < grafo->cantVertices){
 		//Comprueba que el iesimo lugar de la tabla no esté asignado
-		if(grafo->hashTable[posicion] == NULL) {
+		if(grafo->hashTable[posicion] == 0) {
 			//En caso de no estarlo, inicializa el vertice "nombre" en esa posición
-			Vertice nuevoVertice = inicializarVertice(nombre, grafo->cantVertices);
+			Vertice nuevoVertice = malloc(1 * sizeof(Vertice));
+			inicializarVertice(nuevoVertice, nombre, grafo->cantVertices);
 			grafo->hashTable[posicion] = nuevoVertice;
-			//Liberar memoria asignada;
+			//Liberar memoria asignada
 			free(nuevoVertice);
-			//Asigna true al booleano para terminar el ciclo
-			insertado |= 1;
+			//Retorna la posición para terminar el ciclo
+			return posicion;
+
 		}
 		else {
 			//En caso de estar asignado:
@@ -55,12 +55,12 @@ int insertarEnHash(Grafo grafo, u32 nombre) {
 			//Probar en la siguiente posición
 			if (iesimoVertice->nombre != nombre)
 				posicion = (posicion + 1) % grafo->cantVertices;
+			++busquedas;
 		}
 	}
 	//Devuelve la posición de la tabla en que se inserto al vertice
 	return posicion;
 }
-
 
 int buscarEnHash(Grafo grafo, u32 nombreBuscado) {
 	/*
@@ -69,11 +69,11 @@ int buscarEnHash(Grafo grafo, u32 nombreBuscado) {
 	*/
 	int posicion = nombreBuscado % grafo->cantVertices;
 	int busquedas = 0;
-	Vertice iesimoVertice = NULL;
+	Vertice iesimoVertice;
 	
 	//Recorre linealmente la tabla desde la posición i dada
 	while(busquedas < grafo->cantVertices) {
-		iesimoVertice = grafo->hashTable[posicion];
+		iesimoVertice = (grafo->hashTable[posicion]);
 		/*
 		Si el iésimo vértice tiene el nombre que estamos buscando,
 		termina la ejecución y devuelve la posición del elemento
@@ -93,11 +93,9 @@ int buscarEnHash(Grafo grafo, u32 nombreBuscado) {
 	return -1;
 }
 
-
 void agregarLado(Grafo grafo, u32 nombreA, u32 nombreB) {
 	int posicionA, posicionB;
 	bool estaA, estaB;
-	
 	/*
 	Comprobar que los vértices con nombres A y B estén en el grafo,
 	si alguno no esté, crearlo, 
@@ -129,10 +127,18 @@ void agregarLado(Grafo grafo, u32 nombreA, u32 nombreB) {
 	verticeB = NULL;
 }
 
+void destruirGrafo(Grafo grafo) {
+	grafo->cantVertices = 0;
+	for (int i = 0; i < grafo->cantVertices; i++) {
+		destruirVertice(grafo->hashTable[i]);
+	}
+	free(grafo->hashTable);
+	free(grafo);
+	grafo = NULL;
+}
 
 int main () {
 	Grafo grafo = crearGrafo(3);
-	// SEGMENTATION PSV FAULT
 	int posicion1 = insertarEnHash(grafo, 1);
 	printf("Vertice 1 insertado en la posicion %d\n", posicion1);
 	int posicion2 = insertarEnHash(grafo, 2);
@@ -147,6 +153,6 @@ int main () {
 	agregarLado(grafo, 1, 22);
 	printf("Lado agregado entre 1 y 22\n");
 
-	free(grafo);
+	destruirGrafo(grafo);
 	return 0;
 }
