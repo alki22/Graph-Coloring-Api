@@ -1,32 +1,34 @@
+#include "JonSnow.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-#include "Vertice.c"
-
-typedef unsigned int u32;
-
-struct grafo_t {
+struct WinterSt {
 	u32 cantVertices;
+	u32 cantLados;
+	u32 cantColores;
 	//Hashtable de vértices
 	Vertice *hashTable;
 };
 
-typedef struct grafo_t *Grafo;
+typedef struct WinterSt *WinterIsHere;
 
-Grafo crearGrafo(u32 cantVertices) {
+WinterIsHere crearGrafo(u32 cantVertices, u32 cantLados) {
 	//Valores iniciales para la estructura de grafo
 	//Asignar memoria inicial para la estructura
-	Grafo grafo = malloc(sizeof(struct grafo_t));
+	WinterIsHere grafo = NULL;
+	grafo = malloc(sizeof(struct WinterSt));
 	grafo->cantVertices = cantVertices;
+	grafo->cantLados = cantLados;
+	grafo->cantColores = 0;
 	//Asignar memoria para un numero n (= cantVertices) de vertices
-	grafo->hashTable = calloc(cantVertices, sizeof(Vertice));
+	grafo->hashTable = malloc(cantVertices*sizeof(Vertice));
+	for(int i = 0; i < grafo->cantVertices; i++) {
+		grafo->hashTable[i] = malloc(sizeof(struct vertice_t));
+		grafo->hashTable[i]->inicializado = false;
+	}
 	//Devolver un puntero al grafo generado
 	return grafo;
 }
 
-int insertarEnHash(Grafo grafo, u32 nombre) {
+int insertarEnHash(WinterIsHere grafo, u32 nombre) {
 	/*
 	Define una posición i utilizando el modulo entre el nombre del vertice
 	y la cantidad de vertices del grafo
@@ -35,19 +37,21 @@ int insertarEnHash(Grafo grafo, u32 nombre) {
 	int busquedas = 0;
 	Vertice iesimoVertice;
 	
-	//Recorre linealmente la tabla desde la posición i dada
+	/*
+	Recorre linealmente la tabla desde la posición i dada
+	*/
 	while(busquedas < grafo->cantVertices){
 		//Comprueba que el iesimo lugar de la tabla no esté asignado
-		if(grafo->hashTable[posicion] == 0) {
+		if(!grafo->hashTable[posicion]->inicializado) {
 			//En caso de no estarlo, inicializa el vertice "nombre" en esa posición
-			Vertice nuevoVertice = malloc(1 * sizeof(Vertice));
-			inicializarVertice(nuevoVertice, nombre, grafo->cantVertices);
-			grafo->hashTable[posicion] = nuevoVertice;
-			//Liberar memoria asignada
-			free(nuevoVertice);
+			Vertice vertice = grafo->hashTable[posicion];
+			inicializarVertice(vertice, nombre);
 			//Retorna la posición para terminar el ciclo
 			return posicion;
-
+		}
+		else if (grafo->hashTable[posicion]->nombre == nombre){
+			//En caso de ya estar en la tabla, devolver su posición
+			return posicion;
 		}
 		else {
 			//En caso de estar asignado:
@@ -62,18 +66,18 @@ int insertarEnHash(Grafo grafo, u32 nombre) {
 	return posicion;
 }
 
-int buscarEnHash(Grafo grafo, u32 nombreBuscado) {
+int buscarEnHash(WinterIsHere grafo, u32 nombreBuscado) {
 	/*
 	Define una posición i utilizando el modulo entre el nombre del vertice
 	y la cantidad de vertices del grafo
 	*/
-	int posicion = nombreBuscado % grafo->cantVertices;
+	int posicion = nombreBuscado % (grafo->cantVertices);
 	int busquedas = 0;
 	Vertice iesimoVertice;
-	
+
 	//Recorre linealmente la tabla desde la posición i dada
 	while(busquedas < grafo->cantVertices) {
-		iesimoVertice = (grafo->hashTable[posicion]);
+		iesimoVertice = grafo->hashTable[posicion];
 		/*
 		Si el iésimo vértice tiene el nombre que estamos buscando,
 		termina la ejecución y devuelve la posición del elemento
@@ -82,7 +86,7 @@ int buscarEnHash(Grafo grafo, u32 nombreBuscado) {
 			return posicion;
 		}
 		//Caso contrario, probar con la siguiente posicion
-		posicion = (posicion + 1) % grafo->cantVertices;
+		posicion = (posicion + 1) % (grafo->cantVertices);
 		++busquedas;
 	}
 	/*
@@ -93,25 +97,19 @@ int buscarEnHash(Grafo grafo, u32 nombreBuscado) {
 	return -1;
 }
 
-void agregarLado(Grafo grafo, u32 nombreA, u32 nombreB) {
+void agregarLado(WinterIsHere grafo, u32 nombreA, u32 nombreB) {
 	int posicionA, posicionB;
-	bool estaA, estaB;
 	/*
 	Comprobar que los vértices con nombres A y B estén en el grafo,
 	si alguno no esté, crearlo, 
 	y si estén, obtener su posición en la tabla
 	*/
-	posicionA = buscarEnHash(grafo, nombreA);
-	estaA = (posicionA != -1);
-	
-	if (!estaA)
-		posicionA = insertarEnHash(grafo, nombreA);
 
-	posicionB = buscarEnHash(grafo, nombreB);
-	estaB = (posicionB != -1);
+	//Primero para el vértice A
+	posicionA = insertarEnHash(grafo, nombreA);
 
-	if (!estaB)
-		posicionB = insertarEnHash(grafo, nombreB);
+	//Luego para el vértice B
+	posicionB = insertarEnHash(grafo, nombreB);
 
 	Vertice verticeA = grafo->hashTable[posicionA];
 	Vertice verticeB = grafo->hashTable[posicionB];
@@ -121,38 +119,92 @@ void agregarLado(Grafo grafo, u32 nombreA, u32 nombreB) {
 	*/
 	agregarVecino(verticeA, nombreB);
 	agregarVecino(verticeB, nombreA);
-
-	//Tareas de limpieza
-	verticeA = NULL;
-	verticeB = NULL;
 }
 
-void destruirGrafo(Grafo grafo) {
-	grafo->cantVertices = 0;
+WinterIsHere cargarGrafo() {
+	int tamanoLinea = 256;
+	char linea[tamanoLinea];
+	linea[0] = 'c';
+	
+	//Leer las primeras lineas (comentarios)
+	while(linea[0] == 'c') {
+		if(fgets(linea, tamanoLinea, stdin) == NULL) {
+			printf("Error en el input, intente nuevamente\n");
+			return NULL;
+		}
+	}
+
+	/*
+	Comprobar que luego de los comentarios siga una linea con el formato
+	"p edge x y", donde 'x' es el número de vértices e 'y' el de lados
+	*/
+	if(linea[0] != 'p') {
+		printf("Formato del input no corresponde a DIMACS\n");
+		return NULL;
+	}
+
+	u32 cantVertices, cantLados;
+	char comando;
+	char edge[4];
+	
+	sscanf(linea,"%c %s %d %d", &comando, edge, &cantVertices, &cantLados);
+	//En caso de no cumplir con el formato, devolver puntero a NULL
+	if(strcmp(edge, "edge") != 0) {
+		printf("Formato del input para grafo no corresponde a DIMACS\n");
+		return NULL;
+	}
+	//En caso de haber lados y no haber vértices, devolver puntero a NULL
+	if(cantVertices <= 0 && cantLados > 0) {
+		printf("Formato del input para grafo no corresponde a DIMACS\n");
+		return NULL;
+	}
+
+	//Crear el grafo con los parámetros dados
+	WinterIsHere grafo = crearGrafo(cantVertices, cantLados);
+	
+	u32 nombreA, nombreB;
+	//Parsear las n (= cantLados) lineas con lados siguientes
+	for (int i = 0; i < cantLados; i++) {
+		if (fgets(linea, sizeof(linea), stdin) != NULL) {
+			sscanf(linea,"%c %u %u", &comando, &nombreA, &nombreB);
+			//En caso de no cumplir el formato, devolver NULL
+			if(comando != 'e') {
+				printf("Formato del input para lados no corresponde a DIMACS\n");
+				return NULL;
+			}
+			//Agregar el lado ingresado
+			agregarLado(grafo, nombreA, nombreB);
+
+		} else {
+			printf("Error en el input, intente nuevamente\n");
+			return NULL;
+		}
+	}
+	//Eliminar memoria sobrante en los arrays de vecinos de los vértices
+	Vertice vertice = NULL;
+	for (int i = 0; i < grafo->cantVertices ; i++) {
+		vertice = grafo->hashTable[i];
+		optimizarMemoria(vertice);
+	}
+	//Devolver un puntero al grafo creado, con sus vértices y lados almacenados
+	return grafo;
+}
+
+int destruirGrafo(WinterIsHere grafo) {
+	//Liberar la memoria pedida para cada uno de los vértices
 	for (int i = 0; i < grafo->cantVertices; i++) {
 		destruirVertice(grafo->hashTable[i]);
 	}
+	//Liberar la memoria pedida para el arreglo de punteros a vértices
 	free(grafo->hashTable);
+	//Liberar la memoria pedida para la estructura del grafo
 	free(grafo);
-	grafo = NULL;
+
+	return 1;
 }
 
-int main () {
-	Grafo grafo = crearGrafo(3);
-	int posicion1 = insertarEnHash(grafo, 1);
-	printf("Vertice 1 insertado en la posicion %d\n", posicion1);
-	int posicion2 = insertarEnHash(grafo, 2);
-	printf("Vertice 1 insertado en la posicion %d\n", posicion2);
-	int posicion3 = insertarEnHash(grafo, 22);
-	printf("Vertice 1 insertado en la posicion %d\n", posicion3);
-
-	agregarLado(grafo, 2, 22);
-	printf("Lado agregado entre 2 y 22\n");
-	agregarLado(grafo, 2, 1);
-	printf("Lado agregado entre 2 y 1\n");
-	agregarLado(grafo, 1, 22);
-	printf("Lado agregado entre 1 y 22\n");
-
+int main() {
+	WinterIsHere grafo = cargarGrafo();
 	destruirGrafo(grafo);
 	return 0;
 }
