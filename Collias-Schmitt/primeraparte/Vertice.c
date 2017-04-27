@@ -5,17 +5,19 @@
 typedef unsigned int u32;
 
 struct vertice_t{
-u32 nombre;
-u32 color;
-u32 cantidadVecinos;
-u32 tamanoArray;
-u32 *vecinos;
+	bool inicializado;
+	u32 nombre;
+	u32 color;
+	u32 cantidadVecinos;
+	u32 tamanoArray;
+	u32 *vecinos;
 };
 
 typedef struct vertice_t *Vertice;
 
-void inicializarVertice(Vertice vertice, u32 nombre, u32 nVertices) {
+void inicializarVertice(Vertice vertice, u32 nombre) {
 	//Valores iniciales para los atributos
+	vertice->inicializado = true;
 	vertice->nombre = nombre;
 	vertice->color = 0;
 	vertice->cantidadVecinos = 0;
@@ -34,7 +36,6 @@ void inicializarVertice(Vertice vertice, u32 nombre, u32 nVertices) {
 void destruirVertice(Vertice vertice) {
 	free(vertice->vecinos);
 	free(vertice);
-	vertice = NULL;
 }
 
 void agregarVecino(Vertice vertice, u32 nombreVecino) {
@@ -42,13 +43,20 @@ void agregarVecino(Vertice vertice, u32 nombreVecino) {
 	u32 posicion = vertice->cantidadVecinos;
 	//Si el arreglo está lleno, duplicar su tamaño
 	if(vertice->cantidadVecinos >= vertice->tamanoArray) {
+		u32 *vecinos;
 		vertice->tamanoArray *= 2;
-		realloc(vertice->vecinos, vertice->tamanoArray * sizeof(*vertice->vecinos));
+		vecinos = realloc(vertice->vecinos, vertice->tamanoArray * sizeof(*vertice->vecinos));
+		vertice->vecinos = vecinos;
 	}
 	//Insertar el vecino al final del array
 	vertice->vecinos[posicion] = nombreVecino;
 	//Actualizar el n° de vecinos
 	++vertice->cantidadVecinos;
+}
+
+void optimizarMemoria(Vertice vertice) {
+	u32* vecinos = realloc(vertice->vecinos, (vertice->cantidadVecinos) * sizeof(*vertice->vecinos));
+	vertice->vecinos = vecinos;
 }
 
 void imprimirVecinos(Vertice vertice) {
