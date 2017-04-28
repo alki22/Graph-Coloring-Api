@@ -9,29 +9,44 @@ WinterIsHere crearGrafo(u32 cantVertices, u32 cantLados) {
 	grafo->cantLados = cantLados;
 	grafo->cantColores = 0;
 	//Asignar memoria para un numero n (= cantVertices) de vertices
-	grafo->hashTable = malloc(cantVertices*sizeof(Vertice));
+	grafo->hashTable = malloc(cantVertices * sizeof(Vertice));
 	for(u32 i = 0; i < grafo->cantVertices; i++) {
 		grafo->hashTable[i] = malloc(sizeof(struct vertice_t));
 		grafo->hashTable[i]->inicializado = false;
 	}
-	grafo->ordenNatural = calloc(cantVertices, sizeof(Vertice));
 	grafo->orden = malloc(cantVertices * sizeof(Vertice));
+	grafo->orden = grafo->hashTable;
 	grafo->vertUsados = calloc(cantVertices, sizeof(bool));
 	//Devolver un puntero al grafo generado
 	return grafo;
 }
 
-u32 gradoDelVertice(WinterIsHere grafo, u32 etiqueta) {
-	return grafo->hashTable[etiqueta]->cantidadVecinos;
+u32 gradoDelVertice(WinterIsHere grafo, u32 i) {
+	//Devolver el grado del vértice con la etiqueta 'i'
+	return grafo->hashTable[i]->cantVecinos;
 }
 
+u32 colorDelVertice(WinterIsHere grafo, u32 i) {
+	//Devolver el color del vértice con la etiqueta 'i'
+	return grafo->hashTable[i]->color;
+}
+
+u32 nombreDelVertice(WinterIsHere grafo,u32 i) {
+	//Devolver el nombre del vértice con la etiqueta 'i'
+	return grafo->hashTable[i]->nombre;
+}
 
 int insertarEnHash(WinterIsHere grafo, u32 nombre) {
+	/*
+	Aclaración: dandole un valor de retorno tipo int nos ahorramos
+	hacer una función buscarEnHash y utilizamos esta función en 
+	los mismos contextos en los que usaríamos esa
+	*/
 	/*
 	Define una posición i utilizando el modulo entre el nombre del vertice
 	y la cantidad de vertices del grafo
 	*/
-	int posicion = nombre % grafo->cantVertices;
+	u32 posicion = nombre % grafo->cantVertices;
 	u32 busquedas = 0;
 	Vertice iesimoVertice;
 	
@@ -47,7 +62,7 @@ int insertarEnHash(WinterIsHere grafo, u32 nombre) {
 			//Retorna la posición para terminar el ciclo
 			return posicion;
 		}
-		else if (grafo->hashTable[posicion]->nombre == nombre){
+		else if (nombreDelVertice(grafo, posicion) == nombre){
 			//En caso de ya estar en la tabla, devolver su posición
 			return posicion;
 		}
@@ -172,8 +187,18 @@ int destruirGrafo(WinterIsHere grafo) {
 	return 1;
 }
 
+
 int main() {
 	WinterIsHere grafo = cargarGrafo();
+	u32 colores = 0;
+	for(u32 i = 0; i < grafo->cantVertices; ++i) {
+		printf("%u - %u\n", grafo->hashTable[i]->nombre, grafo->hashTable[i]->cantVecinos);
+	}
+	colores = Greedy(grafo);
+	printf("Greedy orden inicial: %u colores\n", colores);
+	OrdenWelshPowell(grafo);
+	colores = Greedy(grafo);
+	printf("Greedy despues de WP: %u colores\n", colores);
 	destruirGrafo(grafo);
 	return 0;
 }
