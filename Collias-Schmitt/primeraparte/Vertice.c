@@ -6,7 +6,7 @@ void inicializarVertice(Vertice vertice, u32 nombre, u32 etiqueta) {
 	vertice->nombre = nombre;
 	vertice->etiqueta = etiqueta;
 	vertice->color = 0;
-	vertice->cantidadVecinos = 0;
+	vertice->cantVecinos = 0;
 	vertice->tamanoArray = 1;
 	/*
 	Asignar memoria equivalente al resto de los vértices 
@@ -15,15 +15,7 @@ void inicializarVertice(Vertice vertice, u32 nombre, u32 etiqueta) {
 	y al final de la carga del grafo eliminar los espacios sobrantes
 	*/
 	vertice->vecinos = malloc(1 * sizeof(Vertice));
-	//Devolver puntero al vértice creado
-
 }
-
-u32 colorDelVertice(Vertice vertice) {return vertice->color;}
-
-u32 nombreDelVertice(Vertice vertice) {return vertice->nombre;}
-
-
 
 void destruirVertice(Vertice vertice) {
 	free(vertice->vecinos);
@@ -32,9 +24,9 @@ void destruirVertice(Vertice vertice) {
 
 void agregarVecino(Vertice verticeA, Vertice verticeB) {
 	//El elemento se insertará en el último lugar del arreglo
-	u32 posicion = verticeA->cantidadVecinos;
+	u32 posicion = verticeA->cantVecinos;
 	//Si el arreglo está lleno, duplicar su tamaño
-	if(verticeA->cantidadVecinos >= verticeA->tamanoArray) {
+	if(verticeA->cantVecinos >= verticeA->tamanoArray) {
 		Vertice *vecinos;
 		verticeA->tamanoArray *= 2;
 		vecinos = realloc(verticeA->vecinos, verticeA->tamanoArray * sizeof(*verticeA->vecinos));
@@ -43,17 +35,17 @@ void agregarVecino(Vertice verticeA, Vertice verticeB) {
 	//Insertar el vecino al final del array
 	verticeA->vecinos[posicion] = verticeB;
 	//Actualizar el n° de vecinos
-	++verticeA->cantidadVecinos;
+	++verticeA->cantVecinos;
 }
 
 void optimizarMemoria(Vertice vertice) {
-	Vertice* vecinos = realloc(vertice->vecinos, (vertice->cantidadVecinos) * sizeof(*vertice->vecinos));
+	Vertice* vecinos = realloc(vertice->vecinos, (vertice->cantVecinos) * sizeof(*vertice->vecinos));
 	vertice->vecinos = vecinos;
 }
 
 void imprimirVecinos(Vertice vertice) {
 	printf("Los vecinos del vertice %u son:\n", vertice->nombre);
 	//Recorrer el arreglo de vecinos linealmente e imprimir los valores
-	for (u32 i = 0; i < vertice->cantidadVecinos; i++)
+	for (u32 i = 0; i < vertice->cantVecinos; i++)
 		printf("%u\n", vertice->vecinos[i]->nombre);
 }
