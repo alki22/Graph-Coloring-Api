@@ -1,24 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include "JonSnow.h"
 
-typedef unsigned int u32;
-
-struct vertice_t{
-	bool inicializado;
-	u32 nombre;
-	u32 color;
-	u32 cantidadVecinos;
-	u32 tamanoArray;
-	u32 *vecinos;
-};
-
-typedef struct vertice_t *Vertice;
-
-void inicializarVertice(Vertice vertice, u32 nombre) {
+void inicializarVertice(Vertice vertice, u32 nombre, u32 etiqueta) {
 	//Valores iniciales para los atributos
 	vertice->inicializado = true;
 	vertice->nombre = nombre;
+	vertice->etiqueta = etiqueta;
 	vertice->color = 0;
 	vertice->cantidadVecinos = 0;
 	vertice->tamanoArray = 1;
@@ -28,40 +14,46 @@ void inicializarVertice(Vertice vertice, u32 nombre) {
 	duplicar el tamaño del array con realloc cuando se llene 
 	y al final de la carga del grafo eliminar los espacios sobrantes
 	*/
-	vertice->vecinos = malloc(1 * sizeof(u32));
+	vertice->vecinos = malloc(1 * sizeof(Vertice));
 	//Devolver puntero al vértice creado
 
 }
+
+u32 colorDelVertice(Vertice vertice) {return vertice->color;}
+
+u32 nombreDelVertice(Vertice vertice) {return vertice->nombre;}
+
+
 
 void destruirVertice(Vertice vertice) {
 	free(vertice->vecinos);
 	free(vertice);
 }
 
-void agregarVecino(Vertice vertice, u32 nombreVecino) {
+void agregarVecino(Vertice verticeA, Vertice verticeB) {
 	//El elemento se insertará en el último lugar del arreglo
-	u32 posicion = vertice->cantidadVecinos;
+	u32 posicion = verticeA->cantidadVecinos;
 	//Si el arreglo está lleno, duplicar su tamaño
-	if(vertice->cantidadVecinos >= vertice->tamanoArray) {
-		u32 *vecinos;
-		vertice->tamanoArray *= 2;
-		vecinos = realloc(vertice->vecinos, vertice->tamanoArray * sizeof(*vertice->vecinos));
-		vertice->vecinos = vecinos;
+	if(verticeA->cantidadVecinos >= verticeA->tamanoArray) {
+		Vertice *vecinos;
+		verticeA->tamanoArray *= 2;
+		vecinos = realloc(verticeA->vecinos, verticeA->tamanoArray * sizeof(*verticeA->vecinos));
+		verticeA->vecinos = vecinos;
 	}
 	//Insertar el vecino al final del array
-	vertice->vecinos[posicion] = nombreVecino;
+	verticeA->vecinos[posicion] = verticeB;
 	//Actualizar el n° de vecinos
-	++vertice->cantidadVecinos;
+	++verticeA->cantidadVecinos;
 }
 
 void optimizarMemoria(Vertice vertice) {
-	u32* vecinos = realloc(vertice->vecinos, (vertice->cantidadVecinos) * sizeof(*vertice->vecinos));
+	Vertice* vecinos = realloc(vertice->vecinos, (vertice->cantidadVecinos) * sizeof(*vertice->vecinos));
 	vertice->vecinos = vecinos;
 }
 
 void imprimirVecinos(Vertice vertice) {
 	printf("Los vecinos del vertice %u son:\n", vertice->nombre);
 	//Recorrer el arreglo de vecinos linealmente e imprimir los valores
-	for (int i = 0; i < vertice->cantidadVecinos; i++)
-		printf("%d\n", vertice->vecinos[i]);
+	for (u32 i = 0; i < vertice->cantidadVecinos; i++)
+		printf("%u\n", vertice->vecinos[i]->nombre);
 }
