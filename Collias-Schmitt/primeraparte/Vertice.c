@@ -9,8 +9,7 @@ void inicializarVertice(Vertice vertice, u32 nombre, u32 etiqueta) {
 	vertice->cantVecinos = 0;
 	vertice->tamanoArray = 1;
 	/*
-	Asignar memoria equivalente al resto de los vértices 
-	Estrategia: 
+	Estrategia:
 	duplicar el tamaño del array con realloc cuando se llene 
 	y al final de la carga del grafo eliminar los espacios sobrantes
 	*/

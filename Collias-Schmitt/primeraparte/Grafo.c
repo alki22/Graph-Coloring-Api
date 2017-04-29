@@ -10,20 +10,50 @@ WinterIsHere crearGrafo(u32 cantVertices, u32 cantLados) {
 	grafo->cantColores = 0;
 	//Asignar memoria para un numero n (= cantVertices) de vertices
 	grafo->hashTable = malloc(cantVertices * sizeof(Vertice));
-	for(u32 i = 0; i < grafo->cantVertices; i++) {
+	for(u32 i = 0; i < grafo->cantVertices; ++i) {
 		grafo->hashTable[i] = malloc(sizeof(struct vertice_t));
 		grafo->hashTable[i]->inicializado = false;
 	}
 	grafo->orden = malloc(cantVertices * sizeof(Vertice));
-	grafo->orden = grafo->hashTable;
-	grafo->vertUsados = calloc(cantVertices, sizeof(bool));
 	//Devolver un puntero al grafo generado
 	return grafo;
 }
 
-u32 gradoDelVertice(WinterIsHere grafo, u32 i) {
-	//Devolver el grado del vértice con la etiqueta 'i'
-	return grafo->hashTable[i]->cantVecinos;
+u32 NumeroDeVertices(WinterIsHere W) {
+	//Devolver la cantidad de vértices del grafo
+	return W->cantVertices;
+}
+
+
+u32 NumeroDeLados(WinterIsHere W) {
+	//Devolver la cantidad de lados del grafo
+	return W->cantLados;
+}
+
+u32 IesimoVerticeEnElOrden(WinterIsHere W,u32 i) {
+	//Devolver la etiqueta del iésimo vértice en el orden
+	return W->orden[i]->etiqueta;
+}
+
+u32 NumeroVerticesDeColor(WinterIsHere W,u32 i) {
+	//Contar los vértices de color i y devolver la cantidad
+	u32 cantidad = 0;
+	for (u32 j = 0; j < W->cantVertices; ++j) {
+		if (colorDelVertice(W, j) == i)
+			++cantidad;
+	}
+	return cantidad;
+}
+
+
+u32 NumeroDeColores(WinterIsHere W) {
+	//Devolver la cantidad de colores del grafo
+	return W->cantColores;
+}
+
+u32 nombreDelVertice(WinterIsHere grafo,u32 i) {
+	//Devolver el nombre del vértice con la etiqueta 'i'
+	return grafo->hashTable[i]->nombre;
 }
 
 u32 colorDelVertice(WinterIsHere grafo, u32 i) {
@@ -31,9 +61,17 @@ u32 colorDelVertice(WinterIsHere grafo, u32 i) {
 	return grafo->hashTable[i]->color;
 }
 
-u32 nombreDelVertice(WinterIsHere grafo,u32 i) {
-	//Devolver el nombre del vértice con la etiqueta 'i'
-	return grafo->hashTable[i]->nombre;
+u32 gradoDelVertice(WinterIsHere grafo, u32 i) {
+	//Devolver el grado del vértice con la etiqueta 'i'
+	return grafo->hashTable[i]->cantVecinos;
+}
+
+u32 IesimoVecino(WinterIsHere grafo, u32 x,u32 i) {
+	/*
+	Devolver la etiqueta del iésimo vecino 
+	del vértice con la etiqueta 'x'
+	*/
+	return grafo->hashTable[x]->vecinos[i]->etiqueta;
 }
 
 int insertarEnHash(WinterIsHere grafo, u32 nombre) {
@@ -103,7 +141,7 @@ void agregarLado(WinterIsHere grafo, u32 nombreA, u32 nombreB) {
 	agregarVecino(verticeB, verticeA);
 }
 
-WinterIsHere cargarGrafo() {
+WinterIsHere WinterIsComing() {
 	int tamanoLinea = 256;
 	char linea[tamanoLinea];
 	linea[0] = 'c';
@@ -146,13 +184,13 @@ WinterIsHere cargarGrafo() {
 	
 	u32 nombreA, nombreB;
 	//Parsear las n (= cantLados) lineas con lados siguientes
-	for (u32 i = 0; i < cantLados; i++) {
+	for (u32 i = 0; i < cantLados; ++i) {
 		if (fgets(linea, sizeof(linea), stdin) != NULL) {
 			sscanf(linea,"%c %u %u", &comando, &nombreA, &nombreB);
 			//En caso de no cumplir el formato, devolver NULL
 			if(comando != 'e') {
 				printf("Formato del input para lados no corresponde a DIMACS\n");
-				free(grafo);
+				Primavera(grafo);
 				return NULL;
 			}
 			//Agregar el lado ingresado
@@ -160,13 +198,14 @@ WinterIsHere cargarGrafo() {
 
 		} else {
 			printf("Error en el input, intente nuevamente\n");
-			free(grafo);
+			Primavera(grafo);
 			return NULL;
 		}
 	}
+	grafo->orden = grafo->hashTable;
 	//Eliminar memoria sobrante en los arrays de vecinos de los vértices
 	Vertice vertice = NULL;
-	for (u32 i = 0; i < grafo->cantVertices ; i++) {
+	for (u32 i = 0; i < grafo->cantVertices ; ++i) {
 		vertice = grafo->hashTable[i];
 		optimizarMemoria(vertice);
 	}
@@ -174,31 +213,17 @@ WinterIsHere cargarGrafo() {
 	return grafo;
 }
 
-int destruirGrafo(WinterIsHere grafo) {
+int Primavera(WinterIsHere W) {
 	//Liberar la memoria pedida para cada uno de los vértices
-	for (u32 i = 0; i < grafo->cantVertices; i++) {
-		destruirVertice(grafo->hashTable[i]);
-	}
+	for (u32 i = 0; i < W->cantVertices; ++i) {
+		destruirVertice(W->hashTable[i]);
+	}	
 	//Liberar la memoria pedida para el arreglo de punteros a vértices
-	free(grafo->hashTable);
+	free(W->hashTable);
+	//Liberar la memoria pedida para el orden del grafo
+	free(W->orden);
 	//Liberar la memoria pedida para la estructura del grafo
-	free(grafo);
+	free(W);
 
 	return 1;
-}
-
-
-int main() {
-	WinterIsHere grafo = cargarGrafo();
-	u32 colores = 0;
-	for(u32 i = 0; i < grafo->cantVertices; ++i) {
-		printf("%u - %u\n", grafo->hashTable[i]->nombre, grafo->hashTable[i]->cantVecinos);
-	}
-	colores = Greedy(grafo);
-	printf("Greedy orden inicial: %u colores\n", colores);
-	OrdenWelshPowell(grafo);
-	colores = Greedy(grafo);
-	printf("Greedy despues de WP: %u colores\n", colores);
-	destruirGrafo(grafo);
-	return 0;
 }
