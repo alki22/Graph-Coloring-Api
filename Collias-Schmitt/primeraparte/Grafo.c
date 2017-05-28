@@ -9,7 +9,7 @@ WinterIsHere crearGrafo(u32 cantVertices, u32 cantLados) {
 	grafo->cantLados = cantLados;
 	grafo->cantColores = 0;
 	//Asignar memoria para un numero n (= cantVertices) de vertices
-	grafo->hashTable = malloc(cantVertices * sizeof(Vertice));
+	grafo->hashTable = calloc(cantVertices, sizeof(Vertice));
 	for(u32 i = 0; i < grafo->cantVertices; ++i) {
 		grafo->hashTable[i] = malloc(sizeof(struct vertice_t));
 		grafo->hashTable[i]->inicializado = false;
@@ -39,7 +39,7 @@ u32 NumeroVerticesDeColor(WinterIsHere W,u32 i) {
 	//Contar los vértices de color i y devolver la cantidad
 	u32 cantidad = 0;
 	for (u32 j = 0; j < W->cantVertices; ++j) {
-		if (colorDelVertice(W, j) == i)
+		if (ColorDelVertice(W, j) == i)
 			++cantidad;
 	}
 	return cantidad;
@@ -51,17 +51,17 @@ u32 NumeroDeColores(WinterIsHere W) {
 	return W->cantColores;
 }
 
-u32 nombreDelVertice(WinterIsHere grafo,u32 i) {
+u32 NombreDelVertice(WinterIsHere grafo,u32 i) {
 	//Devolver el nombre del vértice con la etiqueta 'i'
 	return grafo->hashTable[i]->nombre;
 }
 
-u32 colorDelVertice(WinterIsHere grafo, u32 i) {
+u32 ColorDelVertice(WinterIsHere grafo, u32 i) {
 	//Devolver el color del vértice con la etiqueta 'i'
 	return grafo->hashTable[i]->color;
 }
 
-u32 gradoDelVertice(WinterIsHere grafo, u32 i) {
+u32 GradoDelVertice(WinterIsHere grafo, u32 i) {
 	//Devolver el grado del vértice con la etiqueta 'i'
 	return grafo->hashTable[i]->cantVecinos;
 }
@@ -74,15 +74,17 @@ u32 IesimoVecino(WinterIsHere grafo, u32 x,u32 i) {
 	return grafo->hashTable[x]->vecinos[i]->etiqueta;
 }
 
-int insertarEnHash(WinterIsHere grafo, u32 nombre) {
+int Miameee(WinterIsHere grafo, u32 nombre) {
 	/*
 	Aclaración: dandole un valor de retorno tipo int nos ahorramos
 	hacer una función buscarEnHash y utilizamos esta función en 
 	los mismos contextos en los que usaríamos esa
-	*/
-	/*
+	
 	Define una posición i utilizando el modulo entre el nombre del vertice
 	y la cantidad de vertices del grafo
+
+	Para más información sobre el nuevo nombre elegido, 
+	ver https://www.youtube.com/watch?v=Tc1RrYhl5hw
 	*/
 	u32 posicion = nombre % grafo->cantVertices;
 	u32 busquedas = 0;
@@ -100,7 +102,7 @@ int insertarEnHash(WinterIsHere grafo, u32 nombre) {
 			//Retorna la posición para terminar el ciclo
 			return posicion;
 		}
-		else if (nombreDelVertice(grafo, posicion) == nombre){
+		else if (NombreDelVertice(grafo, posicion) == nombre){
 			//En caso de ya estar en la tabla, devolver su posición
 			return posicion;
 		}
@@ -126,10 +128,10 @@ void agregarLado(WinterIsHere grafo, u32 nombreA, u32 nombreB) {
 	*/
 
 	//Primero para el vértice A
-	posicionA = insertarEnHash(grafo, nombreA);
+	posicionA = Miameee(grafo, nombreA);
 
 	//Luego para el vértice B
-	posicionB = insertarEnHash(grafo, nombreB);
+	posicionB = Miameee(grafo, nombreB);
 
 	Vertice verticeA = grafo->hashTable[posicionA];
 	Vertice verticeB = grafo->hashTable[posicionB];
@@ -202,13 +204,19 @@ WinterIsHere WinterIsComing() {
 			return NULL;
 		}
 	}
-	grafo->orden = grafo->hashTable;
-	//Eliminar memoria sobrante en los arrays de vecinos de los vértices
+	memcpy(grafo->orden, grafo->hashTable, grafo->cantVertices * sizeof(Vertice));
 	Vertice vertice = NULL;
 	for (u32 i = 0; i < grafo->cantVertices ; ++i) {
 		vertice = grafo->hashTable[i];
+		/*
+		Colorear al iésimo vértice en la hash de color i+1
+		(Se obtiene un coloreo propio con n colores)
+		*/
+		vertice->color = i+1;
+		//Eliminar memoria sobrante en los arrays de vecinos de los vértices
 		optimizarMemoria(vertice);
 	}
+	grafo->cantColores = grafo->cantVertices;
 	//Devolver un puntero al grafo creado, con sus vértices y lados almacenados
 	return grafo;
 }

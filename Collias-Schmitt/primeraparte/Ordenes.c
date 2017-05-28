@@ -1,5 +1,8 @@
 #include "JonSnow.h"
 
+u32 *verticesDelColor;
+u32 *ordenDeColores;
+
 int compOrdenNatural(const void *a, const void *b) {
 	//Casteo
 	Vertice verticeA = *(Vertice*)a;
@@ -20,6 +23,44 @@ int compWelshPowell(const void *a, const void *b) {
 		return -1;
 	else if (verticeA->cantVecinos == verticeB->cantVecinos)
 		return 0;
+	else
+		return 1;
+}
+
+int compFuncionDos(const void *a, const void *b) {
+	//Casteo
+	Vertice verticeA = *(Vertice*)a;
+	Vertice verticeB = *(Vertice*)b;
+	//Comparación
+	if (verticesDelColor[verticeA->color] < verticesDelColor[verticeB->color])
+		return -1;
+	else if (verticesDelColor[verticeA->color] == verticesDelColor[verticeB->color]) {
+		if (verticeA->color == verticeB->color)
+			return 0;
+		else if (verticeA->color > verticeB->color)
+			return -1;
+		else
+			return 1;
+	}
+	else
+		return 1;
+}
+
+int compFuncionTres(const void *a, const void *b) {
+	//Casteo
+	Vertice verticeA = *(Vertice*)a;
+	Vertice verticeB = *(Vertice*)b;
+	//Comparación
+	if (verticesDelColor[verticeA->color] > verticesDelColor[verticeB->color])
+		return -1;
+	else if (verticesDelColor[verticeA->color] == verticesDelColor[verticeB->color]) {
+		if (verticeA->color == verticeB->color)
+			return 0;
+		else if (verticeA->color > verticeB->color)
+			return -1;
+		else
+			return 1;
+	}
 	else
 		return 1;
 }
@@ -50,7 +91,7 @@ void mezclarVertices(Vertice *array, u32 tamano, u32 semilla) {
 	}
 }
 
-void ordenarPorBloques(WinterIsHere W, u32 colores[], u32 cantColores) {
+void ordenarPorBloques(WinterIsHere W, u32 *colores, u32 cantColores) {
 	u32 tamano = W->cantVertices;
 	Vertice *nuevoOrden = malloc(tamano * sizeof(Vertice));
 	//Copiar el orden actual en el nuevo orden
@@ -76,8 +117,8 @@ void ordenarPorBloques(WinterIsHere W, u32 colores[], u32 cantColores) {
 		}
 		++i;
 	}
-	//Asignar el nuevo orden como orden del grafo
-	W->orden = nuevoOrden;
+	memcpy(W->orden, nuevoOrden, tamano * sizeof(Vertice));
+	free(nuevoOrden);
 }
 
 void funcionCero(WinterIsHere W) {
@@ -119,91 +160,29 @@ void funcionUno(WinterIsHere W) {
 }
 
 void funcionDos(WinterIsHere W) {
-	//Crear array con los colores del grafo
-	u32 colores[W->cantColores];
-	u32 vecesColor[W->cantColores];
-	u32 temp;
-	/*
-	Llenar el array con 1,2,...,cantColores 
-	e inicializar con 0 la cantidad de grafos 
-	coloreados de cada color
-	*/
-	for (u32 i = 0; i < W->cantColores; ++i) {
-		colores[i] = i+1;
-		vecesColor[i] = 0;
+	verticesDelColor = calloc(W->cantColores + 1, sizeof(u32));
+	for(u32 i = 0; i < W->cantVertices; ++i) {
+		//Contar la cantidad de vértices de cada color
+		u32 color = W->orden[i]->color;
+		++verticesDelColor[color];
 	}
-	//Llenar vecesColor
-	for (u32 i = 0; i < W->cantColores; ++i) {
-		for(u32 j = 0; j < W->cantVertices; ++j) {
-			if (W->orden[j]->color == colores[i])
-				++vecesColor[i];
-		}
-	}
-	//Recorrer vecesColor cantColor - 1 veces
-	for(u32 i = 0; i < W->cantColores; ++i) {
-		for(u32 j = i + 1; j < W->cantColores; j++) {
-			/*
-			Si el siguiente color aparece menos veces,
-			cambiarlos de lugar 
-			(al color y a la cantidad de veces que sale)
-			*/
-			if(vecesColor[i] > vecesColor[j]) {
-				temp = vecesColor[i];
-				vecesColor[i] = vecesColor[j];
-				vecesColor[j] = temp;
-				temp = colores[i];
-				colores[i] =  colores[j];
-				colores[j] = temp;
-			}
-		}
-	}
-	//Ordenar según el nuevo orden de colores
-	ordenarPorBloques(W, colores, W->cantColores);
-
+	//Ordenar en función de dichas cantidades
+	qsort(W->orden, W->cantVertices, sizeof(Vertice), compFuncionDos);
+	
+	free(verticesDelColor);
 }
 
 void funcionTres(WinterIsHere W) {
-	//Crear array con los colores del grafo
-	u32 colores[W->cantColores];
-	u32 vecesColor[W->cantColores];
-	u32 temp;
-	/*
-	Llenar el array con 1,2,...,cantColores 
-	e inicializar con 0 la cantidad de grafos 
-	coloreados de cada color
-	*/
-	for (u32 i = 0; i < W->cantColores; ++i) {
-		colores[i] = i+1;
-		vecesColor[i] = 0;
+	verticesDelColor = calloc(W->cantColores + 1, sizeof(u32));
+	for(u32 i = 0; i < W->cantVertices; ++i) {
+		//Contar la cantidad de vértices de cada color
+		u32 color = W->orden[i]->color;
+		++verticesDelColor[color];
 	}
-	//Llenar vecesColor
-	for (u32 i = 0; i < W->cantColores; ++i) {
-		for(u32 j = 0; j < W->cantVertices; ++j) {
-			if (W->orden[j]->color == colores[i])
-				++vecesColor[i];
-		}
-	}
-	//Recorrer vecesColor cantColor - 1 veces
-	for(u32 i = 0; i < W->cantColores; ++i) {
-		for(u32 j = i + 1; j < W->cantColores; j++) {
-			/*
-			Si el siguiente color aparece menos veces,
-			cambiarlos de lugar 
-			(al color y a la cantidad de veces que sale)
-			*/
-			if(vecesColor[i] < vecesColor[j]) {
-				temp = vecesColor[i];
-				vecesColor[i] = vecesColor[j];
-				vecesColor[j] = temp;
-				temp = colores[i];
-				colores[i] =  colores[j];
-				colores[j] = temp;
-			}
-		}
-	}
-	//Ordenar según el nuevo orden de colores
-	ordenarPorBloques(W, colores, W->cantColores);
-
+	//Ordenar en función de dichas cantidades
+	qsort(W->orden, W->cantVertices, sizeof(Vertice), compFuncionTres);
+	
+	free(verticesDelColor);
 }
 
 void funcionMayorTres(WinterIsHere W, u32 x) {
@@ -228,7 +207,22 @@ void OrdenWelshPowell(WinterIsHere W) {
 }
 
 void AleatorizarVertices(WinterIsHere W, u32 x) {
-	mezclarVertices(W->orden, W->cantVertices, x);
+	srand(x);
+	if (W->cantVertices > 1) {
+		// Pedir memoria para el nuevo orden
+		Vertice* nuevoOrden = malloc(W->cantVertices * sizeof(Vertice));
+		// Copiar el orden inicial de la hash (Orden en que se insertaron los vértices) 
+		memcpy(nuevoOrden, W->hashTable, W->cantVertices * sizeof(Vertice));
+		
+		for (u32 i = 0; i < W->cantVertices; ++i) {
+			u32 j = (i + rand()) / ((RAND_MAX / (W->cantVertices - i)) + 1);
+			Vertice temp = nuevoOrden[j];
+			nuevoOrden[j] = nuevoOrden[i];
+			nuevoOrden[i] = temp;
+		}
+		// Reemplazar el orden del grafo por el que se generó
+		W->orden = nuevoOrden;
+	}
 }
 
 void ReordenManteniendoBloqueColores(WinterIsHere W,u32 x) {

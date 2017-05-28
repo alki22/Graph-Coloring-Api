@@ -112,7 +112,7 @@ u32 Greedy(WinterIsHere W) {
 	for (u32 i = 0; i < cantVertices + 1; ++i) {
 		coloresUsados[i] = false;
 	}
-	//Reestablecer todos los colores por si el grafo ya estaba coloreado
+	//Descolorear el grafo
 	for(u32 i = 0; i < cantVertices; ++i) {
 		W->hashTable[i]->color = 0;
 	}

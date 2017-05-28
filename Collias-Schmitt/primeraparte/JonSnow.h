@@ -106,22 +106,22 @@ u32 NumeroDeColores(WinterIsHere W);
 u32 IesimoVerticeEnElOrden(WinterIsHere W,u32 i);
 
 //Devuelve el grado del vértice con la etiqueta 'i'
-u32 gradoDelVertice(WinterIsHere grafo, u32 i);
+u32 GradoDelVertice(WinterIsHere grafo, u32 i);
 
 //Devuelve el color del vértice con la etiqueta 'i'
-u32 colorDelVertice(WinterIsHere grafo, u32 i);
+u32 ColorDelVertice(WinterIsHere grafo, u32 i);
 
 //Devuelve el nombre del vértice con la etiqueta 'i'
-u32 nombreDelVertice(WinterIsHere grafo, u32 i);
+u32 NombreDelVertice(WinterIsHere grafo, u32 i);
 
 //Devuelve el grado del vértice con la etiqueta 'i'
 u32 IesimoVecino(WinterIsHere W, u32 x,u32 i);
 
 /*
 Inserta un vértice en la tabla,
-en caso de haber un vértice con ese nombre, devuelve su etiqueta
+en caso de haber ya un vértice con ese nombre, devuelve su etiqueta
 */
-int insertarEnHash(WinterIsHere grafo, u32 nombre);
+int Miameee(WinterIsHere grafo, u32 nombre);
 
 //Añade como vecino del vértice de nombreA al de nombreB y viceversa(grafo no dirigido)
 void agregarLado(WinterIsHere grafo, u32 nombreA, u32 nombreB);
@@ -199,19 +199,19 @@ void mezclarVertices(Vertice *array, u32 tamano, u32 semilla);
 
 void ordenarPorBloques(WinterIsHere W, u32* colores, u32 cantColores);
 
-
+//Función para ReordenManteniendoBloqueColores con la opción 0
 void funcionCero(WinterIsHere W);
 
-
+//Función para ReordenManteniendoBloqueColores con la opción 1
 void funcionUno(WinterIsHere W);
 
-
+//Función para ReordenManteniendoBloqueColores con la opción 2
 void funcionDos(WinterIsHere W);
 
-
+//Función para ReordenManteniendoBloqueColores con la opción 3
 void funcionTres(WinterIsHere W);
 
-
+//Función para ReordenManteniendoBloqueColores para valores mayores a 3
 void funcionMayorTres(WinterIsHere W, u32 x);
 
 

@@ -27,7 +27,7 @@ void agregarVecino(Vertice verticeA, Vertice verticeB) {
 	//Si el arreglo está lleno, duplicar su tamaño
 	if(verticeA->cantVecinos >= verticeA->tamanoArray) {
 		Vertice *vecinos;
-		verticeA->tamanoArray *= 2;
+		verticeA->tamanoArray += 4;
 		vecinos = realloc(verticeA->vecinos, verticeA->tamanoArray * sizeof(*verticeA->vecinos));
 		verticeA->vecinos = vecinos;
 	}
@@ -46,5 +46,6 @@ void imprimirVecinos(Vertice vertice) {
 	printf("Los vecinos del vertice %u son:\n", vertice->nombre);
 	//Recorrer el arreglo de vecinos linealmente e imprimir los valores
 	for (u32 i = 0; i < vertice->cantVecinos; i++)
-		printf("%u\n", vertice->vecinos[i]->nombre);
+		printf("%u ", vertice->vecinos[i]->nombre);
+	printf("\n");
 }
